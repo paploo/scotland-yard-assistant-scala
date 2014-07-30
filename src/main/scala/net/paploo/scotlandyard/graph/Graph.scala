@@ -15,20 +15,24 @@ class Edge[+N, +E](val sourceID: NodeID, val destID: NodeID, val data: E) {
 
 object Path {
 
-  def filter[N,E](nodeIDs: List[NodeID])(pred: Node[N,E] => Boolean)(implicit graph: Graph[N,E]): Option[List[NodeID]] =
-    nodeIDs.headOption.flatMap(graph.nodeIndex.get).filter(pred).map(_ => nodeIDs)
+  object Implicits {
+    import scala.language.implicitConversions
 
-  def prune[N,E](nodeIDs: List[NodeID])(pred: Node[N,E] => Boolean)(implicit graph: Graph[N,E]): Option[List[NodeID]] =
-   filter(nodeIDs)((node: Node[N,E]) => !pred(node))
+    implicit def SeqToPath[N,E](seq: Seq[NodeID])(implicit graph: Graph[N,E]): Path[N,E] = new Path(seq: _*)(graph)
+  }
 
-  def transition[N,E](nodeIDs: List[NodeID])(pred: Edge[N,E] => Boolean)(implicit graph: Graph[N,E]): Seq[List[NodeID]] =
-    nodeIDs.headOption.flatMap(graph.edgeIndex.get).map(_.filter(pred)).getOrElse(Nil).map(_.destID :: nodeIDs)
+  def transition[N, E](paths: Seq[Path[N,E]])(pred: Edge[N,E] => Boolean)(implicit graph: Graph[N,E]): Seq[Path[N,E]] =
+    paths.flatMap(_.transition(pred))
+
+  def prune[N,E](paths: Seq[Path[N,E]])(pred: Node[N,E] => Boolean)(implicit graph: Graph[N,E]): Seq[Path[N,E]] =
+    paths.map(_.prune(pred)).filter(_.isDefined).map(_.get)
+
 }
 
-class Path[+N, +E](ids: NodeID*)(gph: Graph[N,E]) {
+class Path[+N, +E](ids: NodeID*)(grph: Graph[N,E]) {
   val nodeIDs: List[NodeID] = ids.toList
 
-  implicit val impliedGraph: Graph[N,E] = gph
+  implicit val impliedGraph: Graph[N,E] = grph
 
   def filter[N1 >: N, E1 >: E](pred: Node[N1,E1] => Boolean)(implicit graph: Graph[N1,E1]): Option[Path[N1,E1]] =
     nodeIDs.headOption.flatMap(graph.nodeIndex.get).filter(pred).map(_ => this)
@@ -51,9 +55,4 @@ class Graph[+N, +E](val nodes: Seq[Node[N,E]], val edges: Seq[Edge[N,E]]) {
 
   val edgeIndex: Map[NodeID, Seq[Edge[N,E]]] = edges.groupBy(_.sourceID)
 
-  def transition[N1 >: N, E1 >: E](paths: Seq[Path[N1,E1]])(pred: Edge[N1,E1] => Boolean): Seq[Path[N1, E1]] =
-    paths.flatMap(_.transition(pred))
-
-  def prune[N1 >: N, E1 >: E](paths: Seq[Path[N1,E1]])(pred: Node[N1,E1] => Boolean): Seq[Path[N1, E1]] = ???
-    //paths.map(path => prune(path)(pred)).filter(_.isDefined).map(_.get)
 }

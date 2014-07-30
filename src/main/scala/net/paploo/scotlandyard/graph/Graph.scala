@@ -3,23 +3,19 @@ package net.paploo.scotlandyard.graph
 case class NodeID(id: String)
 
 class Node[+N, +E](val id: NodeID, val data: N) {
-  def edges[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Seq[Edge[N1,E1]]] = graph.edgeIndex.get(id)
+  def edgesOption[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Seq[Edge[N1,E1]]] = graph.edgeIndex.get(id)
   override def toString = s"Node($id, $data)"
 }
 
 class Edge[+N, +E](val sourceID: NodeID, val destID: NodeID, val data: E) {
-  def source[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1, E1]] = graph.nodeIndex.get(sourceID)
-  def dest[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1, E1]] = graph.nodeIndex.get(destID)
+  def sourceOption[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1, E1]] = graph.nodeIndex.get(sourceID)
+  def destOption[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1, E1]] = graph.nodeIndex.get(destID)
   override def toString = s"Edge($sourceID, $destID, $data)"
 }
 
 object Path {
 
-  object Implicits {
-    import scala.language.implicitConversions
-
-    implicit def SeqToPath[N,E](seq: Seq[NodeID])(implicit graph: Graph[N,E]): Path[N,E] = new Path(seq: _*)(graph)
-  }
+  def apply[N,E](ids: Seq[NodeID]) = new Path(ids)
 
   def transition[N, E](paths: Seq[Path[N,E]])(pred: Edge[N,E] => Boolean)(implicit graph: Graph[N,E]): Seq[Path[N,E]] =
     paths.flatMap(_.transition(pred))
@@ -29,19 +25,19 @@ object Path {
 
 }
 
-class Path[+N, +E](ids: NodeID*)(grph: Graph[N,E]) {
+class Path[+N, +E](ids: Seq[NodeID]) {
   val nodeIDs: List[NodeID] = ids.toList
 
-  implicit val impliedGraph: Graph[N,E] = grph
-
   def filter[N1 >: N, E1 >: E](pred: Node[N1,E1] => Boolean)(implicit graph: Graph[N1,E1]): Option[Path[N1,E1]] =
-    nodeIDs.headOption.flatMap(graph.nodeIndex.get).filter(pred).map(_ => this)
+    headOption(graph).filter(pred).map(_ => this)
 
   def prune[N1 >: N, E1 >: E](pred: Node[N1,E1] => Boolean)(implicit graph: Graph[N1,E1]): Option[Path[N1,E1]] =
-    filter(!pred(_))
+    filter[N1, E1](!pred(_))(graph)
 
   def transition[N1 >: N, E1 >: E](pred: Edge[N1, E1] => Boolean)(implicit graph: Graph[N1,E1]): Seq[Path[N1,E1]] =
-    nodeIDs.headOption.flatMap(graph.edgeIndex.get).map(_.filter(pred)).getOrElse(Nil).map(_.destID :: nodeIDs).map( new Path(_: _*)(graph) )
+    headOption(graph).flatMap(_.edgesOption).map(_.filter(pred)).getOrElse(Nil).map(_.destID :: nodeIDs).map( Path(_) )
+
+  def headOption[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1,E1]] = nodeIDs.headOption.flatMap(graph.nodeIndex.get)
 }
 
 object Graph {

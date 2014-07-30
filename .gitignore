@@ -1,0 +1,16 @@
+# Scala
+*.sc
+
+# sbt
+target/
+
+# IDEs
+.idea*
+.project
+
+# vim
+*.swp
+*.swo
+
+# MacOS X
+.DS_Store

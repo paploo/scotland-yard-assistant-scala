@@ -1,7 +1,7 @@
 package net.paploo.scotlandyard.graph
 
 case class NodeID(id: Int) {
-  override def toString = s"id$id"
+  override def toString = s"ID$id"
 }
 
 class Node[+N, +E](val id: NodeID, val data: N) {

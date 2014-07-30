@@ -25,15 +25,18 @@ object SYApp {
 
     implicit val graph = new Graph[Station, Route](nodes, edges)
 
-    println(nodes)
-    println(edges)
-    println(graph)
+    //println(nodes)
+    //println(edges)
+    //println(graph)
 
     val path: Path[Station,Route] = Path(Seq(NodeID(2)))
-    val p2 = path.transition(_.data == Route("Taxi"))
-    println(p2.map(_.headOption.map(_.id).get))
 
-    val p3 = Path.transition(Seq(path))(_.data == Route("Taxi"))
+    //val p2 = path.transition(_.data == Route("Taxi"))
+    //println(p2.map(_.headOption.map(_.id).get))
+
+    val p3 = Seq(path).transitionEdges(_.data == Route("Taxi")).transitionEdges(_.data == Route("Bus")).filterNodes(_.data.num != 1).transitionEdges(_.data == Route("Taxi"))
+    println(p3)
+    println(p3.headNodeOption.map(_.get.id))
   }
 
 }

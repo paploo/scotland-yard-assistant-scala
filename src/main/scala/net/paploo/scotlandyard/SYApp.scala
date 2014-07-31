@@ -13,7 +13,6 @@ object SYApp {
     val routes: Seq[Route] = List(
       Route(1, 2, Taxi),
       Route(2, 1, Taxi),
-      Route(2, 1, Taxi),
       Route(1, 3, Bus),
       Route(3, 1, Bus),
       Route(2, 3, Taxi),
@@ -32,8 +31,8 @@ object SYApp {
     //println(p3.headNodeOption.map(_.get.id))
 
     val p4 = paths.moveVia(Taxi).moveVia(Bus).detectiveAt(1).moveVia(Taxi)
-    println(p4) // Ex: List(Path(List(ID2, ID3, ID1, ID2)), Path(List(ID2, ID3, ID1, ID2)))
-    println(p4.headNodeOption.map(_.get.id)) // Ex: List(ID2, ID2)
+    println(p4) // Ex: List(Path(List(ID2, ID3, ID1, ID2)))
+    println(p4.headNodeOption.map(_.get.id)) // Ex: List(ID2)
   }
 
 }

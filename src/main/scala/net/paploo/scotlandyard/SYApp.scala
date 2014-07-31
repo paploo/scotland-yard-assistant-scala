@@ -25,15 +25,15 @@ object SYApp {
     val paths = board.startingPaths
     implicit val graph = board.graph
 
-    println(graph)
+    println(graph) // Ex: Graph(3 nodes, 3 edges)
 
     //val p3 = paths.transitionEdges(_.data.transitMode == Taxi).transitionEdges(_.data.transitMode == Bus).filterNodes(_.data.num != 1).transitionEdges(_.data.transitMode == Taxi)
     //println(p3)
     //println(p3.headNodeOption.map(_.get.id))
 
     val p4 = paths.moveVia(Taxi).moveVia(Bus).detectiveAt(1).moveVia(Taxi)
-    println(p4)
-    println(p4.headNodeOption.map(_.get.id))
+    println(p4) // Ex: List(Path(List(ID2, ID3, ID1, ID2)), Path(List(ID2, ID3, ID1, ID2)))
+    println(p4.headNodeOption.map(_.get.id)) // Ex: List(ID2, ID2)
   }
 
 }

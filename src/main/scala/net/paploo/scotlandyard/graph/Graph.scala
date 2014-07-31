@@ -26,4 +26,10 @@ class Graph[+N, +E](val nodes: Seq[Node[N,E]], val edges: Seq[Edge[N,E]]) {
 
   val edgeIndex: Map[NodeID, Seq[Edge[N,E]]] = edges.groupBy(_.sourceID)
 
+  lazy val nodeCount = nodeIndex.size
+
+  lazy val edgeCount = edgeIndex.map {case (id, es) => es.size}.sum
+
+  override def toString = s"Graph(${nodeIndex.size} nodes, ${edgeIndex.size} edges)"
+
 }

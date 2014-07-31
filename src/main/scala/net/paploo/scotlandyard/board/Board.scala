@@ -1,5 +1,7 @@
 package net.paploo.scotlandyard.board
 
+import java.io.File
+
 import net.paploo.scotlandyard.board.Route.TransitMode
 import net.paploo.scotlandyard.graph._
 
@@ -27,7 +29,13 @@ case class Station(num: Int) {
 
 object Board {
 
-  def makeGraph(stations: Seq[Station], routes: Seq[Route]): Graph[Station, Route] = new Graph(stations.map(_.toNode), routes.map(_.toEdge))
+  //def apply(tokenizedRows: Seq[Seq[String]])(startingStationNums: Seq[Int]): (Seq[Station], Seq[Route]) = ???
+
+  //def apply(file: File)(codec: BoardCodec)(startingStationNums: Seq[Int]: Graph[Station, Route] = ???
+
+  object Graph {
+    def apply(stations: Seq[Station], routes: Seq[Route]): Graph[Station, Route] = new Graph(stations.map(_.toNode), routes.map(_.toEdge))
+  }
 
   implicit class BoardPath(val paths: Seq[Path[Station, Route]]) {
 
@@ -43,7 +51,7 @@ object Board {
 
 class Board(val stations: Seq[Station], val routes: Seq[Route], val startingStationNums: Seq[Int]) {
 
-  val graph: Graph[Station, Route] = Board.makeGraph(stations, routes)
+  val graph: Graph[Station, Route] = Board.Graph(stations, routes)
 
   lazy val startingNodeIDs: Seq[NodeID] = startingStationNums.map(Station(_).toNode.id)
 

@@ -25,6 +25,8 @@ object SYApp {
     val paths = board.startingPaths
     implicit val graph = board.graph
 
+    println(graph)
+
     //val p3 = paths.transitionEdges(_.data.transitMode == Taxi).transitionEdges(_.data.transitMode == Bus).filterNodes(_.data.num != 1).transitionEdges(_.data.transitMode == Taxi)
     //println(p3)
     //println(p3.headNodeOption.map(_.get.id))

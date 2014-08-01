@@ -26,6 +26,10 @@ class Graph[+N, +E](val nodes: Seq[Node[N,E]], val edges: Seq[Edge[N,E]]) {
 
   val edgeIndex: Map[NodeID, Seq[Edge[N,E]]] = edges.groupBy(_.sourceID)
 
+  def apply[N1 >: N, E1 >: E](id: NodeID): Node[N1, E1] = nodeIndex(id)
+
+  def get[N1 >: N, E1 >: E](id: NodeID): Option[Node[N1, E1]] = nodeIndex.get(id)
+
   lazy val nodeCount = nodeIndex.size
 
   lazy val edgeCount = edgeIndex.map {case (id, es) => es.size}.sum

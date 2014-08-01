@@ -5,15 +5,10 @@ import net.paploo.scotlandyard.graph._
 
 class GraphTest extends SpecTest {
 
-  val nodes: List[Node[Int, String]] = List(1,2,3,4).map(i => new Node(NodeID(i), i*100))
+  val nodes: List[Node[Int, String]] = List(1,2,99).map(i => new Node(NodeID(i), i*100))
 
   val edges: List[Edge[Int, String]] = List(
     (1 ,2, "Taxi"),
-    (1, 3, "Bus"),
-    (2, 1, "Taxi"),
-    (2, 3, "Taxi"),
-    (3, 1, "Bus"),
-    (3, 2, "Taxi"),
     (55, 66, "Bad")
   ).map {case (src,dest,mode) => new Edge(NodeID(src), NodeID(dest), mode)}
 

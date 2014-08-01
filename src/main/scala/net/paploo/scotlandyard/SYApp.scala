@@ -32,7 +32,7 @@ object SYApp {
 
     val p4 = paths.moveVia(Taxi).moveVia(Bus).detectiveAt(1).moveVia(Taxi)
     println(p4) // Ex: List(Path(List(ID2, ID3, ID1, ID2)))
-    println(p4.headNodeOption.map(_.get.id)) // Ex: List(ID2)
+    println(p4.headNodeOptions.map(_.get.id)) // Ex: List(ID2)
   }
 
 }

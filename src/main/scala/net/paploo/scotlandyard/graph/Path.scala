@@ -6,6 +6,8 @@ object Path {
 
   def apply[N,E](ids: Seq[NodeID]) = new Path(ids)
 
+  def unapply[N,E](path: Path[N,E]): Seq[NodeID] = path.nodeIDs
+
   implicit class PathSeq[N, E](val paths: Seq[Path[N,E]]) {
     // Note: We have to be careful not to trample the normal sequence methods for implicit conversion.
 
@@ -15,12 +17,9 @@ object Path {
     def filterNodes[N1 >: N, E1 >: E](pred: Node[N1, E1] => Boolean)(implicit graph: Graph[N1, E1]): Seq[Path[N1, E1]] =
       paths.map(_.filter(pred)).filter(_.isDefined).map(_.get)
 
-    def filterNodesNot[N1 >: N, E1 >: E](pred: Node[N1, E1] => Boolean)(implicit graph: Graph[N1, E1]): Seq[Path[N1, E1]] =
-      paths.map(_.filterNot(pred)).filter(_.isDefined).map(_.get)
-
     def headNodeIDs[N1 >: N, E1 >: E](implicit graph: Graph[N1, E1]): Seq[NodeID] = paths.map(_.nodeIDs.head)
 
-    def headNodeOption[N1 >: N, E1 >: E](implicit graph: Graph[N1, E1]): Seq[Option[Node[N1,E1]]] = paths.map(_.headOption(graph))
+    def headNodeOptions[N1 >: N, E1 >: E](implicit graph: Graph[N1, E1]): Seq[Option[Node[N1,E1]]] = paths.map(_.headOption(graph))
   }
 }
 
@@ -31,13 +30,17 @@ class Path[+N, +E](ids: Seq[NodeID]) {
   def filter[N1 >: N, E1 >: E](pred: Node[N1,E1] => Boolean)(implicit graph: Graph[N1,E1]): Option[Path[N1,E1]] =
     headOption(graph).filter(pred).map(_ => this)
 
-  def filterNot[N1 >: N, E1 >: E](pred: Node[N1,E1] => Boolean)(implicit graph: Graph[N1,E1]): Option[Path[N1,E1]] =
-    filter[N1, E1](!pred(_))(graph)
-
   def transition[N1 >: N, E1 >: E](pred: Edge[N1, E1] => Boolean)(implicit graph: Graph[N1,E1]): Seq[Path[N1,E1]] =
     headOption(graph).flatMap(_.edgesOption).map(_.filter(pred)).getOrElse(Nil).map(_.destID :: nodeIDs).map( Path(_) )
 
   def headOption[N1 >: N, E1 >: E](implicit graph: Graph[N1,E1]): Option[Node[N1,E1]] = nodeIDs.headOption.flatMap(graph.nodeIndex.get)
+
+  override def hashCode: Int = nodeIDs.hashCode()
+
+  override def equals(that: Any): Boolean = that match {
+    case p: Path[_, _] => nodeIDs == p.nodeIDs
+    case _ => false
+  }
 
   override def toString = s"Path($nodeIDs)"
 

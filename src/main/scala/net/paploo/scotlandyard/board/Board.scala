@@ -11,12 +11,14 @@ object Route {
   }
 
   object TransitMode {
-    def apply(name: String): TransitMode = Map(
+    def apply(name: String): TransitMode = (Map(
       "Taxi" -> Taxi,
       "Bus" -> Bus,
       "Underground" -> Underground,
       "Ferry" -> Ferry
-    ).getOrElse(name, Unknown(name))
+    ) orElse errorPartial)(name)
+
+    val errorPartial: PartialFunction[String, TransitMode] = {case name => throw new java.lang.IllegalArgumentException(s"Unrecognized transit mode $name")}
 
     case object Taxi extends TransitMode { val name = "Taxi"; val value = 1 }
     case object Bus extends TransitMode { val name = "Bus"; val value = 2 }

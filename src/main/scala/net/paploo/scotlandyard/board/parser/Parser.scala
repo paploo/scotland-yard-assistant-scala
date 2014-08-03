@@ -2,12 +2,14 @@ package net.paploo.scotlandyard.board.parser
 
 import java.io._
 import java.nio.charset.StandardCharsets
+import net.paploo.scotlandyard.board.parser.Parser.ParseException
+
 import scala.annotation.tailrec
 import scala.collection.SortedSet
 import net.paploo.scotlandyard.board.{Station, Route, Board}
 import net.paploo.scotlandyard.board.Route.TransitMode
 
-import scala.util.Try
+import scala.util.{Failure, Try}
 
 object Parser {
   implicit class ParserWithDecoder(val decoder: Decoder) extends Parser
@@ -16,6 +18,10 @@ object Parser {
     def apply(input: String): Parser = apply( new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)) )
     def apply(file: File): Parser = apply( new FileInputStream(file) )
     def apply(ioStream: InputStream): Parser = new ParserWithDecoder( new CSVDecoder(ioStream) )
+  }
+
+  class ParseException(val cause: Throwable, val lineNumber: Option[Int] = None) extends java.lang.RuntimeException(cause) {
+    override val toString: String = if(lineNumber.isDefined) super.toString + s" on line ${lineNumber.get}" else super.toString
   }
 }
 
@@ -79,9 +85,9 @@ class CSVDecoder(ioStream: InputStream) extends InputStreamDecoder(ioStream) {
     case s => throw new java.lang.RuntimeException(s"Unparsable Line: $s")
   }
 
-  def tokenStreamer(reader: BufferedReader): Stream[Try[Token]] = {
+  def tokenStreamer(reader: BufferedReader, lineNumber: Int = 1): Stream[Try[Token]] = {
     val line = reader.readLine()
-    if (line == null) Stream.empty else Try(token(line)) #:: tokenStreamer(reader)
+    if (line == null) Stream.empty else Try(token(line)).recoverWith { case t => Failure(new ParseException(t, Some(lineNumber)))} #:: tokenStreamer(reader, lineNumber+1)
   }
 
 }

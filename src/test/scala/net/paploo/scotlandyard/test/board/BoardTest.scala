@@ -1,10 +1,14 @@
 package net.paploo.scotlandyard.test.board
 
-import net.paploo.scotlandyard.board.Route.TransitMode.{Taxi, Bus}
+import net.paploo.scotlandyard.board.Route.TransitMode.{Underground, Taxi, Bus}
 import net.paploo.scotlandyard.graph.{Path, NodeID}
 import net.paploo.scotlandyard.test.SpecTest
 import net.paploo.scotlandyard.board._
 import net.paploo.scotlandyard.board.Board._
+//import net.paploo.scotlandyard.board.Route._
+//import net.paploo.scotlandyard.board.Station._
+
+import scala.collection.immutable.SortedSet
 
 class BoardTest extends SpecTest {
 
@@ -16,6 +20,11 @@ class BoardTest extends SpecTest {
 
       node.id should === (NodeID(88))
       node.data shouldBe station
+    }
+
+    it("should work in an sorted set") {
+      val set = SortedSet(Station(2), Station(1), Station(2))
+      set.toList should === (List(Station(1), Station(2)))
     }
 
   }
@@ -31,11 +40,28 @@ class BoardTest extends SpecTest {
       edge.data shouldBe route
     }
 
+    it("should work in a sorted set") {
+      val set = SortedSet(
+        Route(3, 3, Bus),
+        Route(1, 2, Taxi),
+        Route(2, 1, Underground),
+        Route(1, 2, Taxi),
+        Route(2, 1, Taxi)
+      )
+
+      set.toList should === (List(
+        Route(1, 2, Taxi),
+        Route(2, 1, Taxi),
+        Route(2, 1, Underground),
+        Route(3, 3, Bus)
+      ))
+    }
+
   }
 
   describe("Board") {
 
-    val stations: Seq[Station] = List(1,2,3).map(Station)
+    val stations: Seq[Station] = List(1,2,3).map(Station(_))
 
     val routes: Seq[Route] = List(
       Route(1, 2, Taxi),
@@ -46,9 +72,9 @@ class BoardTest extends SpecTest {
       Route(3, 2, Taxi)
     )
 
-    val startingNums = List(1,2)
+    val startingStations = List(Station(1),Station(2))
 
-    val board: Board = new Board(stations, routes, startingNums)
+    val board: Board = new Board(stations, routes, startingStations)
 
     describe("Path Implicit Class") {
 

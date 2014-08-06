@@ -54,4 +54,13 @@ class Route
     end
   end
 
+  def eql?(other)
+    case other
+    when Route
+      self == other
+    else
+      false
+    end
+  end
+
 end

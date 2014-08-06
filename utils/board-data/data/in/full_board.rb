@@ -1,4 +1,5 @@
-FullBoard = {
+#FullBoard = {
+{
   1 => {
     :yellow => [8, 9],
     :green  => [58, 46],

@@ -56,7 +56,67 @@ class ReineckeParser < Parser
 end
 
 class AndriuschParser < Parser
+
+  TRANSIT_MODE_MAP = {
+    "T" => :taxi,
+    "B" => :bus,
+    "U" => :underground,
+    "X" => :ferry
+  }.freeze
+
+  def self.to_mode(mode)
+    TRANSIT_MODE_MAP[mode]
+  end
+
+  def initialize(file = 'routes.txt')
+    super
+  end
+
+  def compute_routes
+    file.each_line.flat_map do |line|
+      raw_src, raw_dest, raw_mode = line.chomp.split(/\s+/)
+      if raw_src == "0" && raw_dest == "0" # Why would he have "0 0 T" in his data?
+        []
+      else
+        [
+          Route.new(raw_src.to_i, raw_dest.to_i, self.class.to_mode(raw_mode)),
+          Route.new(raw_dest.to_i, raw_src.to_i, self.class.to_mode(raw_mode))
+        ]
+      end
+    end
+  end
+
 end
 
 class GeeksamParser < Parser
+
+  TRANSIT_MODE_MAP = {
+    :yellow => :taxi,
+    :green => :bus,
+    :red => :underground,
+    :black => :ferry
+  }.freeze
+
+  def self.to_mode(mode)
+    TRANSIT_MODE_MAP[mode]
+  end
+
+  def initialize(file = 'full_board.rb')
+    super
+  end
+
+  def compute_routes
+    data.flat_map do |raw_src, routing|
+      routing.flat_map do |raw_mode, dests|
+        dests.map do |raw_dest|
+          Route.new(raw_src.to_i, raw_dest.to_i, self.class.to_mode(raw_mode))
+        end
+      end
+    end
+  end
+
+  def data
+    @data ||= instance_eval(file.read)
+  end
+
 end

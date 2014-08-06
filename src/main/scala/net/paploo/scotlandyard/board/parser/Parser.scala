@@ -41,8 +41,10 @@ trait Parser {
       (stationSet.toList, routeSet.toList)
     } else {
       val inputRoute = inputRoutes.head
-      val station = Station(inputRoute.sourceNum)
-      aggregate(inputRoutes.tail, stationSet + station, routeSet + inputRoute)
+      val srcStation = Station(inputRoute.sourceNum)
+      val destStation = Station(inputRoute.destinationNum)
+      val stations = SortedSet(srcStation, destStation)
+      aggregate(inputRoutes.tail, stationSet ++ stations, routeSet + inputRoute)
     }
   }
 }

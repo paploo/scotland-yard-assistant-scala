@@ -30,7 +30,7 @@ object SYApp {
     println(ps.headNodeOptions.map(_.get.id)) // Ex: List(ID2)
 
     //val parser = Parser.CSV("1\n2\n1,2,Taxi\n2,1,Bus")
-    val parser = Parser.CSV("1\n2\n1,2,Taxi\n2,1,Bus\n1,2,Taxi\n3,3,Eeloo\na,b,c")
+    val parser = Parser.CSV("1\n2\n1,2,Taxi\n2,1,Bus\n1, 2, Taxi\n3,3,Eeloo\na,b,c")
     println(parser.errors.toList)
     println(parser.board)
     println(parser.board.startingStations)

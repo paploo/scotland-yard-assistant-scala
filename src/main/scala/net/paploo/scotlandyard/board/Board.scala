@@ -1,6 +1,7 @@
 package net.paploo.scotlandyard.board
 
 import net.paploo.scotlandyard.board.Route.TransitMode
+import net.paploo.scotlandyard.board.parser.Parser
 import net.paploo.scotlandyard.graph._
 
 object Route {
@@ -47,6 +48,17 @@ case class Station(num: Int) {
 
 object Board {
 
+  lazy val miltonBradley: Board = loadBoardResource("/miltonbradley.csv")
+
+  lazy val ravensburger: Board = loadBoardResource("/ravensburger_board.csv")
+
+  final private def loadBoardResource(path: String): Board =  {
+      val stream = getClass.getResourceAsStream(path)
+      val p = Parser.CSV(stream)
+      if (p.errors.nonEmpty) p.errors.foreach(System.err.println)
+      p.board
+    }
+
   object Graph {
     def apply(stations: Seq[Station], routes: Seq[Route]): Graph[Station, Route] = new Graph(stations.map(_.toNode), routes.map(_.toEdge))
   }
@@ -70,5 +82,7 @@ class Board(val stations: Seq[Station], val routes: Seq[Route], val startingStat
   val startingNodeIDs: Seq[NodeID] = startingStations.map(_.toNode.id)
 
   val startingPaths: Seq[Path[Station,Route]] = startingNodeIDs.map(id => new Path(List(id)))
+
+  override def toString = s"Board(graph = $graph, startingNodeIDs = $startingNodeIDs)"
 
 }

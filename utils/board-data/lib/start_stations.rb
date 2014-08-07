@@ -19,7 +19,7 @@ module StartStations
     174,
     197,
     198
-  ].freeze
+ ].freeze
 
   def self.start_stations
     START_STATIONS

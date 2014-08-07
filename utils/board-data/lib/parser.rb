@@ -15,7 +15,11 @@ class Parser
   end
 
   def routes
-    Set.new(compute_routes).to_a.sort
+    compute_routes.uniq.sort
+  end
+
+  def corrected_routes
+    routes()
   end
 
 end
@@ -53,6 +57,18 @@ class ReineckeParser < Parser
     end
   end
 
+  def corrected_routes
+    removals = [
+      Route.new(187, 199, :bus),
+      Route.new(199, 187, :bus)
+    ]
+    additions = [
+      Route.new(185, 187, :bus),
+      Route.new(187, 185, :bus)
+    ]
+    (routes - removals + additions).uniq.sort
+  end
+
 end
 
 class AndriuschParser < Parser
@@ -86,6 +102,10 @@ class AndriuschParser < Parser
     end
   end
 
+  def corrected_routes
+    raise NotImplementedError("This file is too out of whack to correct--it has both 108 and 200!")
+  end
+
 end
 
 class GeeksamParser < Parser
@@ -113,6 +133,18 @@ class GeeksamParser < Parser
         end
       end
     end
+  end
+
+  def corrected_routes
+    removals = [
+    ]
+    additions = [
+      Route.new(99, 112, :taxi),
+      Route.new(112, 99, :taxi),
+      Route.new(159, 198, :taxi),
+      Route.new(198, 159, :taxi)
+    ]
+    (routes - removals + additions).uniq.sort
   end
 
   def data

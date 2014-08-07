@@ -13,6 +13,7 @@ require 'start_stations'
 require 'route'
 require 'parser'
 require 'validator'
+require 'serializer'
 
 # We have three jobs:
 # 1. Normalize each of the input files into memory.
@@ -101,12 +102,23 @@ end
 class WriterApp
 
   def run
-    GeeksamParser.new.routes
+    mapping.each do |parserklass, filename|
+      routes = parserklass.new.corrected_routes
+      serializer = Serializer.new(routes)
+      path = serializer.write_filename(filename)
+      puts path.inspect
+    end
+  end
 
-    serializer = Serializer.new()
+  def mapping
+    {
+      GeeksamParser => 'ravensburger.csv',
+      ReineckeParser => 'miltonbradley.csv'
+    }
   end
 
 end
 
 
-AuditApp.new.run
+#AuditApp.new.run
+WriterApp.new.run

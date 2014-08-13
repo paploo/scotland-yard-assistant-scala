@@ -63,9 +63,18 @@ object Board {
     def apply(stations: Seq[Station], routes: Seq[Route]): Graph[Station, Route] = new Graph(stations.map(_.toNode), routes.map(_.toEdge))
   }
 
+  sealed trait Ticket { def transitModes: Seq[TransitMode] }
+
+  object Ticket {
+    case object TaxiTicket extends Ticket { val transitModes = Seq(TransitMode.Taxi)}
+    case object BusTicket extends Ticket { val transitModes = Seq(TransitMode.Bus)}
+    case object UndergroundTicket extends Ticket { val transitModes = Seq(TransitMode.Underground)}
+    case object BlackTicket extends Ticket { val transitModes = Seq(TransitMode.Taxi, TransitMode.Bus, TransitMode.Underground, TransitMode.Ferry) }
+  }
+
   implicit class BoardPath(val paths: Seq[Path[Station, Route]]) {
 
-    def moveVia(transitMode: TransitMode)(implicit graph: Graph[Station, Route]): Seq[Path[Station, Route]] = paths.transitionEdges(_.data.transitMode == transitMode)
+    def moveVia(ticket: Ticket)(implicit graph: Graph[Station, Route]): Seq[Path[Station, Route]] = paths.transitionEdges(e => ticket.transitModes.contains(e.data.transitMode))
 
     def detectiveAt(stationNum: Int)(implicit graph: Graph[Station, Route]): Seq[Path[Station, Route]] = paths.filterNodes(_.data.num != stationNum)
 

@@ -1,12 +1,11 @@
 package net.paploo.scotlandyard.test.board
 
-import net.paploo.scotlandyard.board.Route.TransitMode.{Underground, Taxi, Bus}
+import net.paploo.scotlandyard.board.Route.TransitMode._
+import net.paploo.scotlandyard.board.Board.Ticket._
 import net.paploo.scotlandyard.graph.{Path, NodeID}
 import net.paploo.scotlandyard.test.SpecTest
 import net.paploo.scotlandyard.board._
 import net.paploo.scotlandyard.board.Board._
-//import net.paploo.scotlandyard.board.Route._
-//import net.paploo.scotlandyard.board.Station._
 
 import scala.collection.immutable.SortedSet
 
@@ -99,7 +98,15 @@ class BoardTest extends SpecTest {
         val expected: Seq[Path[Station, Route]] = Seq(
           Path(List(NodeID(3), NodeID(1)))
         )
-        paths.moveVia(Bus) should === (expected)
+        paths.moveVia(BusTicket) should === (expected)
+      }
+
+      it("should transition via black ticket") {
+        val expected: Seq[Path[Station, Route]] = Seq(
+          Path(List(NodeID(2), NodeID(1))),
+          Path(List(NodeID(3), NodeID(2)))
+        )
+        paths.moveVia(BlackTicket) === (expected)
       }
 
       it("should compose") {
@@ -107,7 +114,7 @@ class BoardTest extends SpecTest {
           Path(List(NodeID(3), NodeID(1), NodeID(2)))
         )
 
-        val composedPaths = paths.moveVia(Taxi).detectiveAt(3).moveVia(Bus)
+        val composedPaths = paths.moveVia(TaxiTicket).detectiveAt(3).moveVia(BusTicket)
 
         composedPaths should === (expected)
       }

@@ -21,6 +21,8 @@ object Route {
 
     val errorPartial: PartialFunction[String, TransitMode] = {case name => throw new java.lang.IllegalArgumentException(s"Unrecognized transit mode $name")}
 
+    //TODO: Synchronize the use of partial function, apply, and erroring between this, editions, and tickets.
+
     case object Taxi extends TransitMode { val name = "Taxi"; val value = 1 }
     case object Bus extends TransitMode { val name = "Bus"; val value = 2 }
     case object Underground extends TransitMode { val name = "Underground"; val value = 4 }
@@ -50,7 +52,7 @@ object Board {
 
   lazy val miltonBradley: Board = loadBoardResource("/miltonbradley.csv")
 
-  lazy val ravensburger: Board = loadBoardResource("/ravensburger_board.csv")
+  lazy val ravensburger: Board = loadBoardResource("/ravensburger.csv")
 
   final private def loadBoardResource(path: String): Board =  {
       val stream = getClass.getResourceAsStream(path)
@@ -58,6 +60,28 @@ object Board {
       if (p.errors.nonEmpty) p.errors.foreach(System.err.println)
       p.board
     }
+
+  def apply(edition: Edition): Option[Board] = edition match {
+    case Edition.MiltonBradley => Some(miltonBradley)
+    case Edition.Ravensburger => Some(ravensburger)
+    case _ => None
+  }
+
+  sealed trait Edition
+
+  object Edition {
+    case object MiltonBradley extends Edition
+    case object Ravensburger extends Edition
+
+    def apply(str: String): Edition = if (nameMap.isDefinedAt(str.toLowerCase)) nameMap(str.toLowerCase)
+    else throw new IllegalArgumentException(s"No Edition for String $str")
+
+    //TODO: Change to a partial function and downcase.
+    val nameMap: Map[String, Edition] = Map(
+      "miltonbradley" -> MiltonBradley,
+      "ravensburger" -> Ravensburger
+    )
+  }
 
   object Graph {
     def apply(stations: Seq[Station], routes: Seq[Route]): Graph[Station, Route] = new Graph(stations.map(_.toNode), routes.map(_.toEdge))
@@ -70,6 +94,14 @@ object Board {
     case object BusTicket extends Ticket { val transitModes = Seq(TransitMode.Bus)}
     case object UndergroundTicket extends Ticket { val transitModes = Seq(TransitMode.Underground)}
     case object BlackTicket extends Ticket { val transitModes = Seq(TransitMode.Taxi, TransitMode.Bus, TransitMode.Underground, TransitMode.Ferry) }
+
+    //TODO: Change to a partial function and downcase.
+    val nameMap: Map[String, Ticket] = Map(
+      "taxi" -> TaxiTicket,
+      "bus" -> BusTicket,
+      "underground" -> UndergroundTicket,
+      "blackticket" -> BlackTicket
+    )
   }
 
   implicit class BoardPath(val paths: Seq[Path[Station, Route]]) {

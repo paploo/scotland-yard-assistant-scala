@@ -1,43 +1,44 @@
 package net.paploo.scotlandyard.cli.command
 
+import net.paploo.scotlandyard.board.Board.{Ticket, Edition}
 import net.paploo.scotlandyard.board.Route.TransitMode
 
 import scala.util.matching.Regex
 
 object Command {
 
-  def apply(cmd: String): Command = cmd.toLowerCase match {
-    case newGameRegex(edition, ref) => NewGame(Edition(edition), ref)
-    case setGameRegex(ref) => SetGame(ref)
-    case c => InvalidCommand(c)
-  }
+  class CommandParseException(message: String) extends RuntimeException(message)
+  class CommandArityException(message: String) extends CommandParseException(message)
+  class CommandUnknownException(message: String) extends CommandParseException(message)
 
-  val newGameRegex: Regex = """new (miltonbradley|ravensburger) ([A-Za-z0-9]+)""".r
-  val setGameRegex: Regex = """set ([A-Za-z0-9]+""".r
-  val listGamesRegex: Regex = """list""".r
-  val moveViaRegex: Regex = """move (taxi|bus|underground)""".r
-  val moveViaBlackTicketRegex: Regex = """move blackticket""".r
-
-  object Edition {
-    def apply(str: String): Edition = str.toLowerCase match {
-      case "miltonbradley" => MiltonBradley
-      case "ravensburger" => Ravensburger
-      case s => throw new IllegalArgumentException(s"No Edition for String $s")
+  def apply(cmd: String): Command = {
+    val tokens: List[String] = cmd.toLowerCase.split("""\s+""").toList
+    tokens match {
+      case "quit" :: args => Quit
+      case "exit" :: args => Quit
+      case "new" :: edition :: ref :: Nil if Edition.nameMap.isDefinedAt(edition.toLowerCase) => NewGame(Edition.nameMap(edition.toLowerCase), ref)
+      case "new" :: args => throw new CommandArityException("new (miltonbradley|ravensburger) <id>")
+      case "set" :: ref :: Nil => SetGame(ref)
+      case "set" :: args => throw new CommandArityException("set <id>")
+      case "list" :: Nil => ListGames
+      case "list" :: "paths" :: Nil => GetPaths(None)
+      case "list" :: "paths" :: ref :: Nil => GetPaths(Some(ref))
+      case "list" :: args => throw new CommandArityException("list")
+      case "move" :: "via" :: ticket :: Nil if Ticket.nameMap.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.nameMap(ticket.toLowerCase))
+      case "move" :: ticket :: Nil if Ticket.nameMap.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.nameMap(ticket.toLowerCase))
+      case "move" :: args => throw new CommandArityException("move [via] (taxi|bus|underround|blackticket)")
+      case c :: args => throw new CommandUnknownException(s"No command for $c")
     }
   }
-  sealed trait Edition
-  case object MiltonBradley extends Edition
-  case object Ravensburger extends Edition
-
 }
 
 sealed trait Command
 
-case class NewGame(edition: Command.Edition, ref: String) extends Command
+case class NewGame(edition: Edition, ref: String) extends Command
 case class SetGame(ref: String) extends Command
 case object ListGames extends Command
-case class MoveVia(transitMode: TransitMode) extends Command
-case object MoveViaBlackTicket extends Command
-//case class DetectiveAt(stationNum: Int) extends Command
-//case class MrXAt(stationNum: Int) extends Command
-case class InvalidCommand(cmd: String) extends Command
+case class GetPaths(ref: Option[String]) extends Command
+case class MoveVia(ticket: Ticket) extends Command
+case class DetectiveAt(stationNum: Int) extends Command
+case class MrXAt(stationNum: Int) extends Command
+case object Quit extends Command

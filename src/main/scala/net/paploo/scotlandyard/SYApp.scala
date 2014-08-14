@@ -68,34 +68,37 @@ object SYApp {
     case GetPaths(Some(ref)) =>
       games.get(ref).map(game => formatPaths(game.paths)(game.board.graph))
     case MoveVia(ticket) =>
-      currentGame.flatMap(game => updateCurrentPaths(game.paths.moveVia(ticket)(game.board.graph))).flatMap(_ => performCommand(GetPaths(None)))
+      updateCurrentPaths(game => game.paths.moveVia(ticket)(game.board.graph)).flatMap(_ => performCommand(GetPaths(None)))
     case DetectiveAt(stationNum: Int) =>
-      currentGame.flatMap(game => updateCurrentPaths(game.paths.detectiveAt(stationNum)(game.board.graph))).flatMap(_ => performCommand(GetPaths(None)))
+      updateCurrentPaths(game => game.paths.detectiveAt(stationNum)(game.board.graph)).flatMap(_ => performCommand(GetPaths(None)))
     case MrXAt(stationNum: Int) =>
-      currentGame.flatMap(game => updateCurrentPaths(game.paths.mrXAt(stationNum)(game.board.graph))).flatMap(_ => performCommand(GetPaths(None)))
+      updateCurrentPaths(game => game.paths.mrXAt(stationNum)(game.board.graph)).flatMap(_ => performCommand(GetPaths(None)))
   }
 
   protected def formatPaths(paths: Seq[Path[Station, Route]])(implicit graph: Graph[Station,Route]): String =
     paths.map(path => path.nodeIDs.map(id => graph(id).data.num).map(num => f"$num%3d").mkString(", ")).mkString("\n")
 
-  protected def updateCurrentPathsFunctional(newPaths: => Seq[Path[Station, Route]]): Option[GameState] = currentGameRef.flatMap { ref =>
-    currentGame.map { game =>
-      val newGame = game.copy(paths = newPaths)
-      games = games + (ref -> newGame)
-      newGame
-    }
-  }
-
-  protected def updateCurrentPaths(pathComputer: Function[GameState, Path[Station, Route]]): Option[GameState] = for {
+  /**
+   * Updates the current game's paths with the paths returned by the passed function. Guaranteed not to run the function.
+   * unless the game and gameRef are valid.
+   * @param pathComputer
+   * @return
+   */
+  protected def updateCurrentPaths(pathComputer: Function[GameState, Seq[Path[Station, Route]]]): Option[GameState] = for {
     ref <- currentGameRef
     game <- currentGame
-    newPaths <- pathComputer(game)
+    newPaths = pathComputer(game)
     newGame = game.copy(paths = newPaths)
   } yield {
     games = games + (ref -> newGame)
     newGame
   }
 
+  /**
+   * Updates the current game's paths with the paths given. Argument is guaranteed not to be evaluated unless both game and gameRef are valid.
+   * @param newPaths
+   * @return
+   */
   protected def updateCurrentPaths(newPaths: => Seq[Path[Station, Route]]): Option[GameState] = for {
     ref <- currentGameRef
     game <- currentGame

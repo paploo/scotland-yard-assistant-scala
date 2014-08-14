@@ -1,5 +1,7 @@
 package net.paploo.scotlandyard.test.board
 
+import net.paploo.scotlandyard.board.Board.Edition.{Ravensburger, MiltonBradley}
+import net.paploo.scotlandyard.board.Route.TransitMode
 import net.paploo.scotlandyard.board.Route.TransitMode._
 import net.paploo.scotlandyard.board.Board.Ticket._
 import net.paploo.scotlandyard.graph.{Path, NodeID}
@@ -24,6 +26,21 @@ class BoardTest extends SpecTest {
     it("should work in an sorted set") {
       val set = SortedSet(Station(2), Station(1), Station(2))
       set.toList should === (List(Station(1), Station(2)))
+    }
+
+    describe("TransitMode") {
+
+      val inputStrings = Seq("taxi", "Taxi", "bus", "Bus", "underground", "Underground", "subway", "Subway", "ferry", "Ferry", "boat", "Boat")
+      val expectedObjects = Seq(Taxi, Taxi, Bus, Bus, Underground, Underground, Underground, Underground, Ferry, Ferry, Ferry, Ferry)
+
+      it("should convert from string via partial function") {
+        inputStrings.map(TransitMode.fromString) should === (expectedObjects)
+      }
+
+      it("should convert from string via apply") {
+        inputStrings.map(TransitMode(_)) should === (expectedObjects)
+      }
+
     }
 
   }
@@ -129,6 +146,36 @@ class BoardTest extends SpecTest {
 
       it("should give the node IDs") {
         board.startingNodeIDs should === (List(NodeID(1), NodeID(2)))
+      }
+
+    }
+
+    describe("Editions") {
+
+      val inputStrings = Seq("miltonbradley", "MiltonBradley", "mb", "MB", "ravensburger", "Ravensburger", "rb")
+      val expectedObjects = Seq(MiltonBradley, MiltonBradley, MiltonBradley, MiltonBradley, Ravensburger, Ravensburger, Ravensburger)
+
+      it("should convert from string via partial function") {
+        inputStrings.map(Edition.fromString) should === (expectedObjects)
+      }
+
+      it("should convert from string via apply") {
+        inputStrings.map(Edition(_)) should === (expectedObjects)
+      }
+
+    }
+
+    describe("Ticket") {
+
+      val inputStrings = Seq("taxi", "TaxiTicket", "Taxi Ticket", "taxi ticket", "bus", "Bus Ticket", "UnderGround", "underground TICKET", "subway", "black", "BlACK TICKET")
+      val expectedObjects = Seq(TaxiTicket, TaxiTicket, TaxiTicket, TaxiTicket, BusTicket, BusTicket, UndergroundTicket, UndergroundTicket, UndergroundTicket, BlackTicket, BlackTicket)
+
+      it("should convert from string via partial function") {
+        inputStrings.map(Ticket.fromString) should === (expectedObjects)
+      }
+
+      it("should convert from string via apply") {
+        inputStrings.map(Ticket(_)) should === (expectedObjects)
       }
 
     }

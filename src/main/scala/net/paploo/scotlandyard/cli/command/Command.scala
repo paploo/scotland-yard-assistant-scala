@@ -16,7 +16,7 @@ object Command {
     tokens match {
       case "quit" :: args => Quit
       case "exit" :: args => Quit
-      case "new" :: edition :: ref :: Nil if Edition.nameMap.isDefinedAt(edition.toLowerCase) => NewGame(Edition.nameMap(edition.toLowerCase), ref)
+      case "new" :: edition :: ref :: Nil if Edition.fromString.isDefinedAt(edition.toLowerCase) => NewGame(Edition.fromString(edition.toLowerCase), ref)
       case "new" :: args => throw new CommandArityException("new (miltonbradley|ravensburger) <id>")
       case "set" :: ref :: Nil => SetGame(ref)
       case "set" :: args => throw new CommandArityException("set <id>")
@@ -24,8 +24,8 @@ object Command {
       case "list" :: "paths" :: Nil => GetPaths(None)
       case "list" :: "paths" :: ref :: Nil => GetPaths(Some(ref))
       case "list" :: args => throw new CommandArityException("list")
-      case "move" :: "via" :: ticket :: Nil if Ticket.nameMap.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.nameMap(ticket.toLowerCase))
-      case "move" :: ticket :: Nil if Ticket.nameMap.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.nameMap(ticket.toLowerCase))
+      case "move" :: "via" :: ticket :: Nil if Ticket.fromString.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.fromString(ticket.toLowerCase))
+      case "move" :: ticket :: Nil if Ticket.fromString.isDefinedAt(ticket.toLowerCase) => MoveVia(Ticket.fromString(ticket.toLowerCase))
       case "move" :: args => throw new CommandArityException("move [via] (taxi|bus|underround|blackticket)")
       case c :: args => throw new CommandUnknownException(s"No command for $c")
     }

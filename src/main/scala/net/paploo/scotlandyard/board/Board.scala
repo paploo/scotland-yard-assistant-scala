@@ -12,16 +12,18 @@ object Route {
   }
 
   object TransitMode {
-    def apply(name: String): TransitMode = (Map(
-      "Taxi" -> Taxi,
-      "Bus" -> Bus,
-      "Underground" -> Underground,
-      "Ferry" -> Ferry
-    ) orElse errorPartial)(name)
+    def apply(name: String): TransitMode = (fromString orElse fromStringErrorPartial)(name)
 
-    val errorPartial: PartialFunction[String, TransitMode] = {case name => throw new java.lang.IllegalArgumentException(s"Unrecognized transit mode $name")}
+    val fromString: PartialFunction[String, TransitMode] = {
+      case s if s.toLowerCase == "taxi" => Taxi
+      case s if s.toLowerCase == "bus" => Bus
+      case s if s.toLowerCase == "underground" => Underground
+      case s if s.toLowerCase == "subway" => Underground
+      case s if s.toLowerCase == "ferry" => Ferry
+      case s if s.toLowerCase == "boat" => Ferry
+    }
 
-    //TODO: Synchronize the use of partial function, apply, and erroring between this, editions, and tickets.
+    protected val fromStringErrorPartial: PartialFunction[String, TransitMode] = {case name => throw new java.lang.IllegalArgumentException(s"Unrecognized transit mode $name")}
 
     case object Taxi extends TransitMode { val name = "Taxi"; val value = 1 }
     case object Bus extends TransitMode { val name = "Bus"; val value = 2 }
@@ -73,14 +75,16 @@ object Board {
     case object MiltonBradley extends Edition
     case object Ravensburger extends Edition
 
-    def apply(str: String): Edition = if (nameMap.isDefinedAt(str.toLowerCase)) nameMap(str.toLowerCase)
-    else throw new IllegalArgumentException(s"No Edition for String $str")
+    def apply(name: String): Edition = (fromString orElse fromStringErrorPartial)(name)
 
-    //TODO: Change to a partial function and downcase.
-    val nameMap: Map[String, Edition] = Map(
-      "miltonbradley" -> MiltonBradley,
-      "ravensburger" -> Ravensburger
-    )
+    val fromString: PartialFunction[String, Edition] = {
+      case s if s.toLowerCase == "miltonbradley" => MiltonBradley
+      case s if s.toLowerCase == "mb" => MiltonBradley
+      case s if s.toLowerCase == "ravensburger" => Ravensburger
+      case s if s.toLowerCase == "rb" => Ravensburger
+    }
+
+    protected val fromStringErrorPartial: PartialFunction[String, Edition] = {case str => throw new IllegalArgumentException(s"No Edition for String $str")}
   }
 
   object Graph {
@@ -95,13 +99,16 @@ object Board {
     case object UndergroundTicket extends Ticket { val transitModes = Seq(TransitMode.Underground)}
     case object BlackTicket extends Ticket { val transitModes = Seq(TransitMode.Taxi, TransitMode.Bus, TransitMode.Underground, TransitMode.Ferry) }
 
-    //TODO: Change to a partial function and downcase.
-    val nameMap: Map[String, Ticket] = Map(
-      "taxi" -> TaxiTicket,
-      "bus" -> BusTicket,
-      "underground" -> UndergroundTicket,
-      "blackticket" -> BlackTicket
-    )
+    def apply(name: String): Ticket = (fromString orElse fromStringErrorPartial)(name)
+
+    val fromString: PartialFunction[String, Ticket] = {
+      case s if s.toLowerCase matches """(?i)^(taxi)(\s*ticket)?$""" => TaxiTicket
+      case s if s.toLowerCase matches """(?i)^(bus)(\s*ticket)?$""" => BusTicket
+      case s if s.toLowerCase matches """(?i)^(underground|subway)(\s*ticket)?$""" => UndergroundTicket
+      case s if s.toLowerCase matches """(?i)^(black)(\s*ticket)?$""" => BlackTicket
+    }
+
+    protected val fromStringErrorPartial: PartialFunction[String, Ticket] = {case str => throw new IllegalArgumentException(s"No Ticket for String $str")}
   }
 
   implicit class BoardPath(val paths: Seq[Path[Station, Route]]) {
